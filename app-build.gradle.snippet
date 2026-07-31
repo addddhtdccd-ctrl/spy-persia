@@ -1,0 +1,61 @@
+// ─────────────────────────────────────────────────────────────────────────
+// PASTE / MERGE these blocks into android/app/build.gradle
+// (the file `npx cap add android` generates for you).
+// Only the android { ... } block needs edits — leave the `apply from:`
+// lines and `dependencies { }` block that Capacitor generated as-is.
+// ─────────────────────────────────────────────────────────────────────────
+
+android {
+    namespace "com.spyfall.game"
+    compileSdk rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.spyfall.game"
+        // Requirement: support Android 8.0 (API 26) and newer
+        minSdkVersion 26
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets, matching
+             // default Capacitor / Android excludes.
+            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+
+    signingConfigs {
+        release {
+            // Fill these in (see README "Signing" section), or supply them
+            // via -Pandroid.injected.signing.store.file etc. on the command
+            // line / CI so the real values never get committed.
+            storeFile file(System.getenv("SPYFALL_KEYSTORE_PATH") ?: "spyfall-release.keystore")
+            storePassword System.getenv("SPYFALL_KEYSTORE_PASSWORD") ?: "CHANGE_ME"
+            keyAlias System.getenv("SPYFALL_KEY_ALIAS") ?: "spyfall"
+            keyPassword System.getenv("SPYFALL_KEY_PASSWORD") ?: "CHANGE_ME"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            // No minify in debug so `adb logcat` stack traces stay readable.
+            minifyEnabled false
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
+    }
+}

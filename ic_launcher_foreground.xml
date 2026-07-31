@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- soft radial glow behind the eye, kept inside the 66dp safe zone -->
+    <path
+        android:fillColor="#33DC143C"
+        android:pathData="M54,54 m-30,0 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0" />
+
+    <!-- outer eye (almond) shape -->
+    <path
+        android:fillColor="#FF2D4D"
+        android:pathData="M22,54 C34,36 46,29 54,29 C62,29 74,36 86,54 C74,72 62,79 54,79 C46,79 34,72 22,54 Z" />
+
+    <!-- eye socket, near-black, matches app background -->
+    <path
+        android:fillColor="#0A0507"
+        android:pathData="M54,54 m-17,0 a17,17 0 1,0 34,0 a17,17 0 1,0 -34,0" />
+
+    <!-- iris -->
+    <path
+        android:fillColor="#DC143C"
+        android:pathData="M54,54 m-9,0 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0" />
+
+    <!-- pupil slit -->
+    <path
+        android:fillColor="#0A0507"
+        android:pathData="M50.5,54 m-3.5,0 a3.5,10 0 1,0 7,0 a3.5,10 0 1,0 -7,0" />
+
+    <!-- highlight -->
+    <path
+        android:fillColor="#F6ECEC"
+        android:pathData="M58,48 m-2.4,0 a2.4,2.4 0 1,0 4.8,0 a2.4,2.4 0 1,0 -4.8,0" />
+</vector>

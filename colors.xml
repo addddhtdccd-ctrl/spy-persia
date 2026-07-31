@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="splash_bg">#070405</color>
+    <color name="ic_launcher_background">#0a0507</color>
+    <color name="crimson">#dc143c</color>
+    <color name="crimson_bright">#ff2d4d</color>
+    <color name="colorPrimary">#dc143c</color>
+    <color name="colorPrimaryDark">#5c0f18</color>
+    <color name="colorAccent">#ff2d4d</color>
+</resources>

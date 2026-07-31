@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SPYFALL // Classified Mission</title>
+<meta name="theme-color" content="#0a0507">
+<style>
+/* ==========================================================================
+   SPYFALL — Design tokens
+   Palette: near-black base, crimson/dark-red accents, glass surfaces
+   Type: Big Shoulders Display (dossier stencil headers) + Manrope (body)
+         Vazirmatn for Persian
+   Signature: radar sweep + redacted-dossier scanline flip cards
+   ========================================================================== */
+
+:root{
+  --bg-0: #070405;
+  --bg-1: #0d0708;
+  --crimson: #dc143c;
+  --crimson-bright: #ff2d4d;
+  --dark-red: #5c0f18;
+  --glass-fill: rgba(24, 12, 14, 0.52);
+  --glass-fill-strong: rgba(30, 14, 17, 0.72);
+  --glass-border: rgba(220, 60, 80, 0.22);
+  --glass-border-strong: rgba(255, 70, 95, 0.45);
+  --text-hi: #f6ecec;
+  --text-mid: #cdb2b6;
+  --text-low: #8a6b6f;
+  --glow: 0 0 40px rgba(220, 20, 60, 0.35);
+  --glow-soft: 0 0 18px rgba(220, 20, 60, 0.25);
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+  --font-display: 'Arial Narrow', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ease-snap: cubic-bezier(.2,.9,.25,1);
+}
+
+html[dir="rtl"]{
+  --font-display: Tahoma, 'Segoe UI', 'Noto Sans Arabic', sans-serif;
+  --font-body: Tahoma, 'Segoe UI', 'Noto Sans Arabic', sans-serif;
+}
+
+*{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html,body{ height: 100%; }
+body{
+  margin: 0;
+  background: radial-gradient(ellipse at 50% -10%, #200308 0%, var(--bg-0) 55%), var(--bg-0);
+  color: var(--text-hi);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---------------- Ambient background ---------------- */
+.bg-layer{ position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.grain{
+  position: absolute; inset: -50%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+.radar-sweep{
+  position: absolute; top: -20%; left: 50%; width: 160vmax; height: 160vmax;
+  transform: translateX(-50%);
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(220,20,60,0.10) 18deg, transparent 40deg, transparent 360deg);
+  animation: sweep 9s linear infinite;
+}
+@keyframes sweep{ to{ transform: translateX(-50%) rotate(360deg); } }
+.vignette{
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, transparent 40%, rgba(0,0,0,0.65) 100%);
+}
+
+/* ---------------- App shell ---------------- */
+.app{ position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+.screen{
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+  animation: screenIn 0.5s var(--ease-snap);
+}
+.screen.active{ display: flex; }
+@keyframes screenIn{
+  from{ opacity: 0; transform: translateY(14px) scale(0.99); }
+  to{ opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------------- Top bar ---------------- */
+.top-bar{ display: flex; align-items: center; justify-content: space-between; padding: 6px 4px 18px; }
+.brand{ display: flex; align-items: center; gap: 12px; }
+.brand-mark{
+  font-size: 26px; color: var(--crimson-bright);
+  filter: drop-shadow(0 0 10px rgba(255,45,77,0.8));
+  animation: pulseMark 2.4s ease-in-out infinite;
+}
+@keyframes pulseMark{ 0%,100%{ opacity: 0.75; } 50%{ opacity: 1; } }
+.brand-text h1{
+  font-family: var(--font-display); font-weight: 900; font-size: 26px; letter-spacing: 3px;
+  margin: 0; line-height: 1;
+  background: linear-gradient(180deg, #fff 0%, #ff8fa3 60%, var(--crimson) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.brand-sub{ margin: 3px 0 0; font-size: 10px; letter-spacing: 2.5px; color: var(--text-low); font-weight: 700; }
+
+.lang-toggle{ display: flex; background: var(--glass-fill); border: 1px solid var(--glass-border); border-radius: 999px; padding: 3px; backdrop-filter: blur(14px); }
+.lang-btn{
+  border: none; background: transparent; color: var(--text-mid); font-family: var(--font-body); font-weight: 700;
+  font-size: 12px; padding: 7px 14px; border-radius: 999px; cursor: pointer; transition: all 0.25s var(--ease-snap);
+}
+.lang-btn.active{ background: linear-gradient(135deg, var(--crimson) 0%, var(--dark-red) 100%); color: #fff; box-shadow: var(--glow-soft); }
+
+/* ---------------- Glass card ---------------- */
+.setup-scroll{ flex: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 10px; max-width: 560px; width: 100%; margin: 0 auto; }
+.glass-card{
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 18px 20px;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+  animation: cardRise 0.6s var(--ease-snap) backwards;
+  transition: border-color 0.3s;
+}
+.glass-card:hover{ border-color: var(--glass-border-strong); }
+.setup-scroll .glass-card:nth-child(1){ animation-delay: 0.02s; }
+.setup-scroll .glass-card:nth-child(2){ animation-delay: 0.08s; }
+.setup-scroll .glass-card:nth-child(3){ animation-delay: 0.14s; }
+.setup-scroll .glass-card:nth-child(4){ animation-delay: 0.2s; }
+.setup-scroll .glass-card:nth-child(5){ animation-delay: 0.26s; }
+@keyframes cardRise{ from{ opacity: 0; transform: translateY(16px); } to{ opacity: 1; transform: translateY(0); } }
+
+.card-label{ display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-mid); margin-bottom: 14px; }
+.label-icon{ color: var(--crimson-bright); font-size: 15px; }
+
+/* ---------------- Stepper ---------------- */
+.stepper{ display: flex; align-items: center; justify-content: center; gap: 22px; }
+.stepper-btn{
+  width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border-strong);
+  background: linear-gradient(145deg, rgba(220,20,60,0.18), rgba(0,0,0,0.2));
+  color: var(--text-hi); font-size: 22px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.15s var(--ease-snap), box-shadow 0.2s, background 0.2s;
+}
+.stepper-btn:hover{ box-shadow: var(--glow-soft); }
+.stepper-btn:active{ transform: scale(0.88); }
+.stepper-value{ font-family: var(--font-display); font-size: 44px; font-weight: 900; min-width: 60px; text-align: center; color: var(--crimson-bright); text-shadow: 0 0 24px rgba(255,45,77,0.5); }
+.range-hint{ text-align: center; font-size: 11px; color: var(--text-low); margin-top: 10px; letter-spacing: 0.5px; }
+
+/* ---------------- Chips ---------------- */
+.chip-row{ display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+.chip{
+  border: 1px solid var(--glass-border); background: rgba(255,255,255,0.03); color: var(--text-mid);
+  font-family: var(--font-body); font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 999px;
+  cursor: pointer; transition: all 0.22s var(--ease-snap);
+}
+.chip:hover{ border-color: var(--glass-border-strong); color: var(--text-hi); }
+.chip.active{ background: linear-gradient(135deg, var(--crimson) 0%, var(--dark-red) 100%); color: #fff; border-color: transparent; box-shadow: var(--glow-soft); transform: translateY(-1px); }
+.custom-time-row{ display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; }
+.custom-time-row input{
+  width: 80px; text-align: center; font-size: 18px; font-weight: 800; padding: 10px; border-radius: var(--radius-sm);
+  background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border-strong); color: var(--text-hi); font-family: var(--font-body);
+}
+.custom-time-row span{ color: var(--text-mid); font-size: 13px; }
+
+/* ---------------- Category grid ---------------- */
+.category-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.cat-btn{
+  border: 1px solid var(--glass-border); background: rgba(255,255,255,0.03); color: var(--text-mid);
+  border-radius: var(--radius-md); padding: 13px 6px; cursor: pointer; font-family: var(--font-body);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.3px; transition: all 0.22s var(--ease-snap); text-align: center;
+}
+.cat-btn .cat-icon{ font-size: 20px; }
+.cat-btn:hover{ border-color: var(--glass-border-strong); transform: translateY(-2px); }
+.cat-btn.active{ background: linear-gradient(160deg, rgba(220,20,60,0.35), rgba(92,15,24,0.55)); border-color: var(--crimson-bright); color: #fff; box-shadow: var(--glow-soft); }
+.cat-btn.random-cat{ grid-column: span 3; flex-direction: row; justify-content: center; background: linear-gradient(90deg, rgba(220,20,60,0.14), rgba(120,10,30,0.14)); }
+
+/* ---------------- Names grid ---------------- */
+.names-grid{ display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; padding-right: 2px; }
+.name-row{ display: flex; align-items: center; gap: 10px; }
+.name-index{ width: 24px; text-align: center; font-family: var(--font-display); font-weight: 800; color: var(--crimson-bright); font-size: 15px; }
+.name-row input{
+  flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: var(--text-hi);
+  padding: 11px 13px; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 14px; font-weight: 600;
+  transition: border-color 0.2s;
+}
+.name-row input:focus{ outline: none; border-color: var(--glass-border-strong); box-shadow: var(--glow-soft); }
+.names-grid::-webkit-scrollbar{ width: 5px; }
+.names-grid::-webkit-scrollbar-thumb{ background: var(--dark-red); border-radius: 4px; }
+
+/* ---------------- CTA ---------------- */
+.cta-btn{
+  position: relative; border: none; margin-top: 6px; padding: 18px; border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--crimson) 0%, #8c0f22 100%);
+  color: #fff; font-family: var(--font-display); font-weight: 900; font-size: 19px; letter-spacing: 3px;
+  cursor: pointer; overflow: hidden; isolation: isolate;
+  box-shadow: 0 10px 30px rgba(220,20,60,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition: transform 0.18s var(--ease-snap), box-shadow 0.25s;
+}
+.cta-btn:hover{ transform: translateY(-2px); box-shadow: 0 14px 38px rgba(220,20,60,0.5); }
+.cta-btn:active{ transform: translateY(0) scale(0.97); }
+.cta-btn.small{ padding: 14px; font-size: 15px; letter-spacing: 2px; }
+.cta-glow{
+  position: absolute; inset: -40%; z-index: -1;
+  background: radial-gradient(circle, rgba(255,255,255,0.35), transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.cta-btn:hover .cta-glow{ opacity: 1; }
+
+.secondary-btn{
+  border: 1px solid var(--glass-border-strong); background: var(--glass-fill); color: var(--text-hi);
+  font-family: var(--font-body); font-weight: 700; font-size: 14px; padding: 14px 20px; border-radius: var(--radius-md);
+  cursor: pointer; backdrop-filter: blur(12px); transition: all 0.22s var(--ease-snap); letter-spacing: 0.5px;
+}
+.secondary-btn:hover{ border-color: var(--crimson-bright); box-shadow: var(--glow-soft); }
+.secondary-btn:active{ transform: scale(0.96); }
+.secondary-btn.ghost{ background: transparent; color: var(--text-mid); border-color: var(--glass-border); }
+
+/* ==========================================================================
+   Reveal screen
+   ========================================================================== */
+.reveal-wrap{ flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; max-width: 420px; margin: 0 auto; width: 100%; text-align: center; }
+.reveal-progress{ font-size: 12px; letter-spacing: 3px; color: var(--text-low); font-weight: 700; margin: 0; }
+.reveal-pass{ margin: 0; color: var(--text-mid); font-size: 13px; }
+.reveal-name{ font-family: var(--font-display); font-size: 34px; font-weight: 900; letter-spacing: 1px; margin: 0 0 20px; color: var(--text-hi); }
+
+.flip-card-host{
+  position: relative;
+  width: min(78vw, 300px); height: min(78vw, 300px); max-height: 340px;
+  margin-bottom: 22px;
+}
+.flip-card{
+  position: absolute; inset: 0;
+  perspective: 1400px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform, opacity;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 620ms cubic-bezier(.34,.01,.2,1), opacity 620ms cubic-bezier(.34,.01,.2,1);
+}
+.flip-card::after{
+  content: "";
+  position: absolute; left: 8%; right: 8%; bottom: -14px; height: 26px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 72%);
+  filter: blur(3px);
+  opacity: 0.32; transform: scale(0.92);
+  transition: opacity 650ms cubic-bezier(.4,0,.2,1), transform 650ms cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+.flip-card.flipped::after{ opacity: 0.55; transform: scale(1.06); }
+.flip-inner{
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 650ms cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+}
+.flip-card.flipped .flip-inner{ transform: rotateY(180deg); }
+.flip-face{
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  border-radius: 26px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), var(--glow);
+}
+.flip-front{
+  background: linear-gradient(160deg, rgba(40,10,14,0.9), rgba(10,4,5,0.95));
+  color: var(--text-mid); font-weight: 800; letter-spacing: 3px; font-size: 12px;
+}
+.flip-front .seal{ font-size: 46px; color: var(--crimson-bright); filter: drop-shadow(0 0 16px rgba(255,45,77,0.7)); animation: pulseMark 2s ease-in-out infinite; }
+.flip-back{
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, rgba(50,8,14,0.96), rgba(8,3,4,0.98));
+  padding: 20px; position: relative; overflow: hidden;
+}
+.flip-back::before{
+  content: ""; position: absolute; left: 0; right: 0; height: 3px; top: -10%;
+  background: linear-gradient(90deg, transparent, rgba(255,45,77,0.9), transparent);
+  animation: scanline 1.8s linear infinite;
+}
+@keyframes scanline{ 0%{ top: -5%; } 100%{ top: 105%; } }
+.role-reveal-fade{ opacity: 0; animation: roleFadeIn 260ms cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes roleFadeIn{ from{ opacity: 0; transform: translateY(4px); } to{ opacity: 1; transform: translateY(0); } }
+.role-tag{ font-size: 11px; letter-spacing: 3px; font-weight: 800; color: var(--crimson-bright); text-transform: uppercase; }
+.role-tag.is-spy{ color: #ff5470; }
+.role-word{ font-family: var(--font-display); font-size: 30px; font-weight: 900; color: #fff; text-align: center; line-height: 1.1; }
+.role-category{ font-size: 12px; color: var(--text-low); letter-spacing: 1.5px; text-transform: uppercase; }
+.role-spy-icon{ font-size: 38px; }
+
+.reveal-caption{ font-size: 11px; color: var(--text-low); max-width: 260px; margin-top: 6px; }
+
+/* ==========================================================================
+   Timer screen
+   ========================================================================== */
+.timer-wrap{ flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; text-align: center; }
+.timer-eyebrow{ letter-spacing: 4px; font-size: 12px; font-weight: 800; color: var(--crimson-bright); margin: 0; }
+.timer-ring-wrap{ position: relative; width: 240px; height: 240px; }
+.timer-ring{ width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-bg{ fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 10; }
+.ring-fg{
+  fill: none; stroke: url(#none); stroke: var(--crimson-bright); stroke-width: 10; stroke-linecap: round;
+  stroke-dasharray: 628; stroke-dashoffset: 0; filter: drop-shadow(0 0 10px rgba(255,45,77,0.7));
+  transition: stroke-dashoffset 1s linear;
+}
+.timer-center{ position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.timer-center span{ font-family: var(--font-display); font-size: 46px; font-weight: 900; letter-spacing: 1px; }
+.timer-hint{ color: var(--text-mid); font-size: 13px; margin: 0; }
+.timer-controls{ display: flex; gap: 12px; }
+.icon-btn{
+  border: 1px solid var(--glass-border-strong); background: var(--glass-fill); color: var(--text-hi);
+  padding: 12px 20px; border-radius: 999px; font-weight: 700; font-size: 13px; cursor: pointer;
+  backdrop-filter: blur(12px); transition: all 0.2s;
+}
+.icon-btn:hover{ box-shadow: var(--glow-soft); }
+.icon-btn.danger{ border-color: rgba(255,45,77,0.6); color: #ff8fa3; }
+
+.timer-ring-wrap.urgent .ring-fg{ stroke: #ff2d4d; }
+.timer-ring-wrap.urgent .timer-center span{ color: #ff2d4d; animation: urgentPulse 1s ease-in-out infinite; }
+@keyframes urgentPulse{ 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.08); } }
+
+/* ==========================================================================
+   Time's up screen
+   ========================================================================== */
+.timesup-wrap{ flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; max-width: 420px; margin: 0 auto; width: 100%; }
+.alarm-icon{ font-size: 48px; color: var(--crimson-bright); animation: alarmShake 0.6s ease-in-out infinite; filter: drop-shadow(0 0 20px rgba(255,45,77,0.7)); }
+@keyframes alarmShake{ 0%,100%{ transform: rotate(0); } 25%{ transform: rotate(-10deg); } 75%{ transform: rotate(10deg); } }
+.timesup-title{ font-family: var(--font-display); font-size: 40px; font-weight: 900; letter-spacing: 4px; margin: 0; color: #fff; text-shadow: 0 0 30px rgba(255,45,77,0.6); }
+.timesup-sub{ color: var(--text-mid); margin: 0 0 8px; font-size: 14px; }
+.spy-reveal-list{ width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.spy-reveal-item{
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--glass-fill); border: 1px solid var(--glass-border-strong); border-radius: var(--radius-sm);
+  padding: 12px 16px; animation: cardRise 0.4s var(--ease-snap) backwards;
+}
+.spy-reveal-item .name{ font-weight: 700; }
+.spy-reveal-item .badge{ font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: #ff5470; }
+.timesup-actions{ display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 18px; }
+
+/* ---------------- Responsive ---------------- */
+@media (min-width: 720px){
+  .category-grid{ grid-template-columns: repeat(4, 1fr); }
+  .cat-btn.random-cat{ grid-column: span 4; }
+  .setup-scroll{ max-width: 640px; }
+}
+@media (min-width: 900px){
+  .app{ align-items: center; }
+  .screen{ max-width: 780px; margin: 0 auto; width: 100%; }
+}
+@media (max-width: 360px){
+  .stepper-value{ font-size: 36px; }
+  .brand-text h1{ font-size: 21px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- Ambient background layers -->
+<div class="bg-layer">
+  <div class="grain"></div>
+  <div class="radar-sweep"></div>
+  <div class="vignette"></div>
+</div>
+
+<div id="app" class="app">
+
+  <!-- ============ HOME / SETUP SCREEN ============ -->
+  <section id="screen-home" class="screen active" aria-label="Setup">
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <div class="brand-text">
+          <h1 data-i18n="appTitle">SPYFALL</h1>
+          <p class="brand-sub" data-i18n="appSubtitle">CLASSIFIED FIELD MISSION</p>
+        </div>
+      </div>
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" data-lang="en" id="langBtnEn">EN</button>
+        <button type="button" class="lang-btn" data-lang="fa" id="langBtnFa">فا</button>
+      </div>
+    </header>
+
+    <main class="setup-scroll">
+
+      <!-- Players -->
+      <div class="glass-card">
+        <div class="card-label">
+          <span class="label-icon">☰</span>
+          <span data-i18n="players">Agents in the Field</span>
+        </div>
+        <div class="stepper">
+          <button class="stepper-btn" id="playersMinus" aria-label="decrease">−</button>
+          <div class="stepper-value" id="playersValue">6</div>
+          <button class="stepper-btn" id="playersPlus" aria-label="increase">+</button>
+        </div>
+        <div class="range-hint"><span data-i18n="min">Min</span> 3 — <span data-i18n="max">Max</span> 12</div>
+      </div>
+
+      <!-- Spies -->
+      <div class="glass-card">
+        <div class="card-label">
+          <span class="label-icon">✦</span>
+          <span data-i18n="spies">Spies Embedded</span>
+        </div>
+        <div class="stepper">
+          <button class="stepper-btn" id="spiesMinus" aria-label="decrease">−</button>
+          <div class="stepper-value" id="spiesValue">1</div>
+          <button class="stepper-btn" id="spiesPlus" aria-label="increase">+</button>
+        </div>
+        <div class="range-hint" id="spiesHint" data-i18n="spiesHint">Up to N spies allowed</div>
+      </div>
+
+      <!-- Timer -->
+      <div class="glass-card">
+        <div class="card-label">
+          <span class="label-icon">◷</span>
+          <span data-i18n="timer">Mission Duration</span>
+        </div>
+        <div class="chip-row" id="timerChips">
+          <button class="chip" data-time="120" data-i18n="t2">2 min</button>
+          <button class="chip active" data-time="180" data-i18n="t3">3 min</button>
+          <button class="chip" data-time="300" data-i18n="t5">5 min</button>
+          <button class="chip" data-time="600" data-i18n="t10">10 min</button>
+          <button class="chip" data-time="custom" data-i18n="tCustom">Custom</button>
+        </div>
+        <div class="custom-time-row" id="customTimeRow" hidden>
+          <input type="number" id="customMinutes" min="1" max="60" value="4">
+          <span data-i18n="minutesLabel">minutes</span>
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="glass-card">
+        <div class="card-label">
+          <span class="label-icon">▣</span>
+          <span data-i18n="category">Operation Theme</span>
+        </div>
+        <div class="category-grid" id="categoryGrid"></div>
+      </div>
+
+      <!-- Player names (collapsible) -->
+      <div class="glass-card">
+        <div class="card-label">
+          <span class="label-icon">✎</span>
+          <span data-i18n="names">Codenames</span>
+        </div>
+        <div class="names-grid" id="namesGrid"></div>
+      </div>
+
+      <button id="startBtn" class="cta-btn">
+        <span class="cta-glow"></span>
+        <span class="cta-text" data-i18n="startGame">BEGIN MISSION</span>
+      </button>
+      <div style="height: 24px;"></div>
+    </main>
+  </section>
+
+  <!-- ============ CARD REVEAL SCREEN ============ -->
+  <section id="screen-reveal" class="screen" aria-label="Reveal">
+    <div class="reveal-wrap">
+      <p class="reveal-progress" id="revealProgress">1 / 6</p>
+      <p class="reveal-pass" data-i18n="passTo">Pass the device to</p>
+      <h2 class="reveal-name" id="revealName">Player 1</h2>
+
+      <div class="flip-card-host" id="flipCardHost">
+        <!-- .flip-card is created fresh by script.js for every player, so no
+             stale role content can ever exist in the DOM before a tap. -->
+      </div>
+
+      <button class="secondary-btn" id="nextPlayerBtn" hidden>
+        <span data-i18n="nextAgent">Next Agent →</span>
+      </button>
+      <p class="reveal-caption" id="revealCaption" data-i18n="revealCaptionHint">Make sure no one else can see the screen.</p>
+    </div>
+  </section>
+
+  <!-- ============ COUNTDOWN SCREEN ============ -->
+  <section id="screen-timer" class="screen" aria-label="Countdown">
+    <div class="timer-wrap">
+      <p class="timer-eyebrow" data-i18n="missionInProgress">MISSION IN PROGRESS</p>
+      <div class="timer-ring-wrap">
+        <svg class="timer-ring" viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="100"></circle>
+          <circle class="ring-fg" id="ringFg" cx="110" cy="110" r="100"></circle>
+        </svg>
+        <div class="timer-center">
+          <span id="timerDisplay">03:00</span>
+        </div>
+      </div>
+      <p class="timer-hint" data-i18n="timerHint">Find the spy before time runs out.</p>
+      <div class="timer-controls">
+        <button class="icon-btn" id="pauseBtn" data-i18n="pause">Pause</button>
+        <button class="icon-btn danger" id="endBtn" data-i18n="endMission">End Mission</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TIME'S UP SCREEN ============ -->
+  <section id="screen-timesup" class="screen" aria-label="Times Up">
+    <div class="timesup-wrap">
+      <div class="alarm-icon">⏱</div>
+      <h2 class="timesup-title" data-i18n="timesUp">TIME'S UP</h2>
+      <p class="timesup-sub" data-i18n="timesUpSub">Vote now. Who was the spy?</p>
+
+      <button class="secondary-btn" id="revealSpiesBtn" data-i18n="revealSpies">Reveal the Spies</button>
+      <div class="spy-reveal-list" id="spyRevealList" hidden></div>
+
+      <div class="timesup-actions">
+        <button class="cta-btn small" id="playAgainBtn">
+          <span class="cta-text" data-i18n="playAgain">Play Again</span>
+        </button>
+        <button class="secondary-btn ghost" id="newGameBtn" data-i18n="newGame">New Mission Setup</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ==========================================================================
+   SPYFALL — script.js
+   All game logic: setup, randomization, card reveal, countdown, results.
+   No build tools, no external JS dependencies. Pure vanilla JS.
+   ========================================================================== */
+
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------ *
+   * 1. TRANSLATIONS
+   * ------------------------------------------------------------------ */
+  const I18N = {
+    en: {
+      appTitle: 'SPYFALL',
+      appSubtitle: 'CLASSIFIED FIELD MISSION',
+      players: 'Agents in the Field',
+      min: 'Min', max: 'Max',
+      spies: 'Spies Embedded',
+      spiesHint: (n) => `Up to ${n} spies allowed for this group`,
+      timer: 'Mission Duration',
+      t2: '2 min', t3: '3 min', t5: '5 min', t10: '10 min', tCustom: 'Custom',
+      minutesLabel: 'minutes',
+      category: 'Operation Theme',
+      names: 'Codenames',
+      namePlaceholder: (n) => `Agent ${n}`,
+      startGame: 'BEGIN MISSION',
+      passTo: 'Pass the device to',
+      tapToReveal: 'TAP TO REVEAL',
+      nextAgent: 'Next Agent →',
+      revealCaptionHint: 'Make sure no one else can see the screen.',
+      missionInProgress: 'MISSION IN PROGRESS',
+      timerHint: 'Find the spy before time runs out.',
+      pause: 'Pause', resume: 'Resume',
+      endMission: 'End Mission',
+      timesUp: "TIME'S UP",
+      timesUpSub: 'Vote now. Who was the spy?',
+      revealSpies: 'Reveal the Spies',
+      playAgain: 'Play Again',
+      newGame: 'New Mission Setup',
+      youAreSpy: 'YOU ARE THE SPY',
+      spyHint: 'Blend in. Guess the word from context.',
+      theWordIs: 'THE SECRET WORD IS',
+      spyBadge: 'SPY',
+      confirmLowPlayers: 'You need at least 3 players.',
+      catRandom: 'Random',
+      catCountries: 'Countries',
+      catCities: 'Cities',
+      catAnimals: 'Animals',
+      catFoods: 'Foods',
+      catMovies: 'Movies',
+      catFootball: 'Football Players',
+      catSports: 'Sports',
+      catObjects: 'Objects',
+      catJobs: 'Jobs',
+      catFamous: 'Famous People',
+    },
+    fa: {
+      appTitle: 'جاسوس‌بازی',
+      appSubtitle: 'ماموریت محرمانه میدانی',
+      players: 'مأموران حاضر',
+      min: 'حداقل', max: 'حداکثر',
+      spies: 'تعداد جاسوس‌ها',
+      spiesHint: (n) => `حداکثر ${n} جاسوس برای این گروه مجاز است`,
+      timer: 'مدت زمان ماموریت',
+      t2: '۲ دقیقه', t3: '۳ دقیقه', t5: '۵ دقیقه', t10: '۱۰ دقیقه', tCustom: 'دلخواه',
+      minutesLabel: 'دقیقه',
+      category: 'موضوع ماموریت',
+      names: 'نام‌های مستعار',
+      namePlaceholder: (n) => `مأمور ${n}`,
+      startGame: 'شروع ماموریت',
+      passTo: 'گوشی را بده به',
+      tapToReveal: 'برای مشاهده لمس کن',
+      nextAgent: 'مأمور بعدی ←',
+      revealCaptionHint: 'مطمئن شو کس دیگری صفحه را نمی‌بیند.',
+      missionInProgress: 'ماموریت در حال اجراست',
+      timerHint: 'قبل از پایان زمان، جاسوس را پیدا کنید.',
+      pause: 'توقف', resume: 'ادامه',
+      endMission: 'پایان ماموریت',
+      timesUp: 'زمان تمام شد',
+      timesUpSub: 'همین حالا رأی بدهید. جاسوس چه کسی بود؟',
+      revealSpies: 'نمایش جاسوس‌ها',
+      playAgain: 'یک دور دیگر',
+      newGame: 'ماموریت جدید',
+      youAreSpy: 'تو جاسوس هستی',
+      spyHint: 'خودت را جا بزن. کلمه را از روی گفتگو حدس بزن.',
+      theWordIs: 'کلمه‌ی محرمانه',
+      spyBadge: 'جاسوس',
+      confirmLowPlayers: 'حداقل به ۳ بازیکن نیاز است.',
+      catRandom: 'تصادفی',
+      catCountries: 'کشورها',
+      catCities: 'شهرها',
+      catAnimals: 'حیوانات',
+      catFoods: 'غذاها',
+      catMovies: 'فیلم‌ها',
+      catFootball: 'فوتبالیست‌ها',
+      catSports: 'ورزش‌ها',
+      catObjects: 'اشیاء',
+      catJobs: 'مشاغل',
+      catFamous: 'افراد مشهور',
+    }
+  };
+
+  /* ------------------------------------------------------------------ *
+   * 2. WORD BANKS  (category -> lang -> [words])
+   * ------------------------------------------------------------------ */
+  const CATEGORIES = ['countries', 'cities', 'animals', 'foods', 'movies', 'football', 'sports', 'objects', 'jobs', 'famous'];
+  const CAT_ICON = {
+    random: '🎲', countries: '🌍', cities: '🏙️', animals: '🐾', foods: '🍽️',
+    movies: '🎬', football: '⚽', sports: '🏆', objects: '🧰', jobs: '💼', famous: '🌟'
+  };
+  const CAT_LABEL_KEY = {
+    countries: 'catCountries', cities: 'catCities', animals: 'catAnimals', foods: 'catFoods',
+    movies: 'catMovies', football: 'catFootball', sports: 'catSports', objects: 'catObjects',
+    jobs: 'catJobs', famous: 'catFamous'
+  };
+
+  const WORDS = {
+    countries: {
+      en: ['France', 'Japan', 'Brazil', 'Egypt', 'Canada', 'Italy', 'India', 'Germany', 'Mexico', 'Australia', 'Spain', 'Turkey', 'Iran', 'Russia', 'Argentina'],
+      fa: ['فرانسه', 'ژاپن', 'برزیل', 'مصر', 'کانادا', 'ایتالیا', 'هند', 'آلمان', 'مکزیک', 'استرالیا', 'اسپانیا', 'ترکیه', 'ایران', 'روسیه', 'آرژانتین']
+    },
+    cities: {
+      en: ['Paris', 'Tokyo', 'New York', 'Cairo', 'Istanbul', 'London', 'Dubai', 'Rome', 'Tehran', 'Barcelona', 'Sydney', 'Moscow', 'Amsterdam', 'Toronto'],
+      fa: ['پاریس', 'توکیو', 'نیویورک', 'قاهره', 'استانبول', 'لندن', 'دبی', 'رم', 'تهران', 'بارسلونا', 'سیدنی', 'مسکو', 'آمستردام', 'تورنتو']
+    },
+    animals: {
+      en: ['Lion', 'Elephant', 'Dolphin', 'Eagle', 'Tiger', 'Panda', 'Wolf', 'Shark', 'Kangaroo', 'Owl', 'Fox', 'Penguin', 'Cheetah', 'Camel'],
+      fa: ['شیر', 'فیل', 'دلفین', 'عقاب', 'ببر', 'پاندا', 'گرگ', 'کوسه', 'کانگورو', 'جغد', 'روباه', 'پنگوئن', 'یوزپلنگ', 'شتر']
+    },
+    foods: {
+      en: ['Pizza', 'Sushi', 'Kebab', 'Pasta', 'Tacos', 'Burger', 'Curry', 'Falafel', 'Paella', 'Croissant', 'Dumplings', 'Ramen'],
+      fa: ['پیتزا', 'سوشی', 'کباب', 'پاستا', 'تاکو', 'همبرگر', 'کاری', 'فلافل', 'پائیا', 'کروسان', 'دامپلینگ', 'رامن']
+    },
+    movies: {
+      en: ['Inception', 'Titanic', 'Gladiator', 'Avatar', 'Interstellar', 'Joker', 'Parasite', 'The Matrix', 'Jaws', 'Coco'],
+      fa: ['شروع', 'تایتانیک', 'گلادیاتور', 'آواتار', 'در میان ستارگان', 'جوکر', 'انگل', 'ماتریکس', 'دندان‌های تیز', 'کوکو']
+    },
+    football: {
+      en: ['Messi', 'Ronaldo', 'Mbappe', 'Neymar', 'Pele', 'Maradona', 'Beckham', 'Zidane', 'Salah', 'Haaland'],
+      fa: ['مسی', 'رونالدو', 'امباپه', 'نیمار', 'پله', 'مارادونا', 'بکهام', 'زیدان', 'صلاح', 'هالند']
+    },
+    sports: {
+      en: ['Football', 'Tennis', 'Basketball', 'Swimming', 'Boxing', 'Volleyball', 'Chess', 'Cycling', 'Golf', 'Archery'],
+      fa: ['فوتبال', 'تنیس', 'بسکتبال', 'شنا', 'بوکس', 'والیبال', 'شطرنج', 'دوچرخه‌سواری', 'گلف', 'تیراندازی با کمان']
+    },
+    objects: {
+      en: ['Camera', 'Umbrella', 'Compass', 'Telescope', 'Suitcase', 'Flashlight', 'Wallet', 'Keyboard', 'Mirror', 'Backpack'],
+      fa: ['دوربین', 'چتر', 'قطب‌نما', 'تلسکوپ', 'چمدان', 'چراغ‌قوه', 'کیف پول', 'صفحه‌کلید', 'آینه', 'کوله‌پشتی']
+    },
+    jobs: {
+      en: ['Doctor', 'Pilot', 'Chef', 'Detective', 'Firefighter', 'Architect', 'Teacher', 'Photographer', 'Astronaut', 'Journalist'],
+      fa: ['پزشک', 'خلبان', 'سرآشپز', 'کارآگاه', 'آتش‌نشان', 'معمار', 'معلم', 'عکاس', 'فضانورد', 'روزنامه‌نگار']
+    },
+    famous: {
+      en: ['Einstein', 'Cleopatra', 'Napoleon', 'Shakespeare', 'Gandhi', 'Newton', 'Da Vinci', 'Marie Curie'],
+      fa: ['اینشتین', 'کلئوپاترا', 'ناپلئون', 'شکسپیر', 'گاندی', 'نیوتن', 'داوینچی', 'ماری کوری']
+    }
+  };
+
+  /* ------------------------------------------------------------------ *
+   * 3. STATE
+   * ------------------------------------------------------------------ */
+  const state = {
+    lang: 'en',
+    playerCount: 6,
+    spyCount: 1,
+    timeSeconds: 180,
+    category: 'random',
+    names: [],
+    // runtime (per round)
+    order: [],          // shuffled indices for reveal order
+    revealIndex: 0,
+    spyIndices: new Set(),
+    secretWord: '',
+    secretCategoryKey: '',
+    timerTotal: 180,
+    timerRemaining: 180,
+    timerId: null,
+    paused: false,
+  };
+
+  const usedWords = {}; // { 'category_lang': Set }
+
+  /* ------------------------------------------------------------------ *
+   * 4. DOM HELPERS
+   * ------------------------------------------------------------------ */
+  const $ = (id) => document.getElementById(id);
+  const t = (key, ...args) => {
+    const entry = I18N[state.lang][key];
+    return typeof entry === 'function' ? entry(...args) : (entry || key);
+  };
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+
+  function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      const val = I18N[state.lang][key];
+      if (typeof val === 'string') el.textContent = val;
+    });
+    document.title = state.lang === 'fa' ? 'جاسوس‌بازی // ماموریت محرمانه' : 'SPYFALL // Classified Mission';
+  }
+
+  function setLanguage(lang) {
+    state.lang = lang;
+    document.getElementById('htmlRoot').setAttribute('lang', lang);
+    document.getElementById('htmlRoot').setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
+    $('langBtnEn').classList.toggle('active', lang === 'en');
+    $('langBtnFa').classList.toggle('active', lang === 'fa');
+    applyTranslations();
+    renderCategoryGrid();
+    renderNamesGrid();
+    updateSpiesHint();
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 5. SETUP SCREEN RENDERING
+   * ------------------------------------------------------------------ */
+  function maxSpiesAllowed() {
+    // keep at least 2 non-spy agents so the round makes sense
+    return Math.max(1, state.playerCount - 2);
+  }
+
+  function updateSpiesHint() {
+    $('spiesHint').textContent = t('spiesHint', maxSpiesAllowed());
+  }
+
+  function clampSpies() {
+    const maxS = maxSpiesAllowed();
+    if (state.spyCount > maxS) state.spyCount = maxS;
+    if (state.spyCount < 1) state.spyCount = 1;
+    $('spiesValue').textContent = state.spyCount;
+  }
+
+  function renderCategoryGrid() {
+    const grid = $('categoryGrid');
+    grid.innerHTML = '';
+    const allKeys = ['random', ...CATEGORIES];
+    allKeys.forEach((key) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cat-btn' + (key === 'random' ? ' random-cat' : '') + (state.category === key ? ' active' : '');
+      btn.dataset.cat = key;
+      const label = key === 'random' ? t('catRandom') : t(CAT_LABEL_KEY[key]);
+      btn.innerHTML = `<span class="cat-icon">${CAT_ICON[key]}</span><span>${label}</span>`;
+      btn.addEventListener('click', () => {
+        state.category = key;
+        renderCategoryGrid();
+      });
+      grid.appendChild(btn);
+    });
+  }
+
+  function renderNamesGrid() {
+    const grid = $('namesGrid');
+    // keep existing custom names if present, else default
+    if (state.names.length !== state.playerCount) {
+      const prev = state.names;
+      state.names = Array.from({ length: state.playerCount }, (_, i) => prev[i] || '');
+    }
+    grid.innerHTML = '';
+    for (let i = 0; i < state.playerCount; i++) {
+      const row = document.createElement('div');
+      row.className = 'name-row';
+      row.innerHTML = `<span class="name-index">${i + 1}</span>`;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 18;
+      input.placeholder = t('namePlaceholder', i + 1);
+      input.value = state.names[i] || '';
+      input.addEventListener('input', () => { state.names[i] = input.value; });
+      row.appendChild(input);
+      grid.appendChild(row);
+    }
+  }
+
+  function renderTimerChips() {
+    document.querySelectorAll('#timerChips .chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('#timerChips .chip').forEach((c) => c.classList.remove('active'));
+        chip.classList.add('active');
+        if (chip.dataset.time === 'custom') {
+          $('customTimeRow').hidden = false;
+          state.timeSeconds = parseInt($('customMinutes').value || '4', 10) * 60;
+        } else {
+          $('customTimeRow').hidden = true;
+          state.timeSeconds = parseInt(chip.dataset.time, 10);
+        }
+      });
+    });
+    $('customMinutes').addEventListener('input', () => {
+      const mins = Math.max(1, Math.min(60, parseInt($('customMinutes').value || '1', 10)));
+      state.timeSeconds = mins * 60;
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 6. SETUP WIRING
+   * ------------------------------------------------------------------ */
+  function wireSetup() {
+    $('playersMinus').addEventListener('click', () => {
+      if (state.playerCount > 3) { state.playerCount--; $('playersValue').textContent = state.playerCount; renderNamesGrid(); clampSpies(); updateSpiesHint(); }
+    });
+    $('playersPlus').addEventListener('click', () => {
+      if (state.playerCount < 12) { state.playerCount++; $('playersValue').textContent = state.playerCount; renderNamesGrid(); clampSpies(); updateSpiesHint(); }
+    });
+    $('spiesMinus').addEventListener('click', () => {
+      if (state.spyCount > 1) { state.spyCount--; $('spiesValue').textContent = state.spyCount; }
+    });
+    $('spiesPlus').addEventListener('click', () => {
+      if (state.spyCount < maxSpiesAllowed()) { state.spyCount++; $('spiesValue').textContent = state.spyCount; }
+    });
+    $('langBtnEn').addEventListener('click', () => setLanguage('en'));
+    $('langBtnFa').addEventListener('click', () => setLanguage('fa'));
+    $('startBtn').addEventListener('click', startGame);
+    renderTimerChips();
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 7. RANDOMIZATION HELPERS
+   * ------------------------------------------------------------------ */
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function pickCategoryKey() {
+    if (state.category === 'random') {
+      return CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+    }
+    return state.category;
+  }
+
+  function pickWord(catKey) {
+    const bank = WORDS[catKey][state.lang];
+    const usedKey = catKey + '_' + state.lang;
+    if (!usedWords[usedKey]) usedWords[usedKey] = new Set();
+    const used = usedWords[usedKey];
+    let pool = bank.filter((w) => !used.has(w));
+    if (pool.length === 0) { used.clear(); pool = bank.slice(); }
+    const word = pool[Math.floor(Math.random() * pool.length)];
+    used.add(word);
+    return word;
+  }
+
+  function pickSpyIndices(count, spyCount) {
+    const idx = shuffle(Array.from({ length: count }, (_, i) => i));
+    return new Set(idx.slice(0, spyCount));
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 8. GAME START / REVEAL FLOW
+   * ------------------------------------------------------------------ */
+  function startGame() {
+    if (state.playerCount < 3) { alert(t('confirmLowPlayers')); return; }
+    clampSpies();
+
+    const catKey = pickCategoryKey();
+    state.secretCategoryKey = catKey;
+    state.secretWord = pickWord(catKey);
+    state.spyIndices = pickSpyIndices(state.playerCount, state.spyCount);
+    state.order = shuffle(Array.from({ length: state.playerCount }, (_, i) => i));
+    state.revealIndex = 0;
+
+    // ensure all names have fallback values
+    for (let i = 0; i < state.playerCount; i++) {
+      if (!state.names[i] || !state.names[i].trim()) state.names[i] = t('namePlaceholder', i + 1);
+    }
+
+    showScreen('screen-reveal');
+    renderRevealCard();
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 8b. PLAYER CARD SYSTEM
+   *     - A brand new .flip-card element is built for every player, so
+   *       there is never a stale/previous role sitting in the DOM.
+   *     - The role markup is kept out of the DOM entirely (held in a
+   *       closure variable) until the flip animation has fully finished,
+   *       so it is physically impossible to see it before that moment.
+   *     - Card swap (old card out / new card in) and the 3D flip both
+   *       animate only `transform` and `opacity` for GPU-accelerated,
+   *       60fps-friendly motion.
+   * ------------------------------------------------------------------ */
+  const CARD_SLIDE_MS = 600;   // slide-out / slide-in duration (500-700ms range)
+  const CARD_FLIP_MS = 650;    // 3D flip duration
+  const CARD_SLIDE_DIST = 48;  // px the card travels while sliding
+
+  let pendingRoleHTML = '';    // role markup for the card currently on screen; not in the DOM until flipped
+
+  function buildRoleHTML(playerIdx) {
+    const isSpy = state.spyIndices.has(playerIdx);
+    if (isSpy) {
+      return `
+        <div class="role-spy-icon role-reveal-fade">🕶️</div>
+        <div class="role-tag is-spy role-reveal-fade">${t('spyBadge')}</div>
+        <div class="role-word role-reveal-fade">${t('youAreSpy')}</div>
+        <div class="role-category role-reveal-fade">${t('spyHint')}</div>
+      `;
+    }
+    const catLabel = t(CAT_LABEL_KEY[state.secretCategoryKey]);
+    return `
+      <div class="role-tag role-reveal-fade">${t('theWordIs')}</div>
+      <div class="role-word role-reveal-fade">${state.secretWord}</div>
+      <div class="role-category role-reveal-fade">${catLabel}</div>
+    `;
+  }
+
+  function createFlipCardEl() {
+    const card = document.createElement('div');
+    card.className = 'flip-card';
+    card.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-face flip-front">
+          <div class="seal">◈</div>
+          <p data-i18n="tapToReveal">${t('tapToReveal')}</p>
+        </div>
+        <div class="flip-face flip-back"><!-- filled only after the flip completes --></div>
+      </div>
+    `;
+    return card;
+  }
+
+  // Mounts a fresh, face-down card and slides it up from the bottom while fading in.
+  function mountFlipCard() {
+    const host = $('flipCardHost');
+    // Defensive reset: guarantees no leftover card (and no leftover role
+    // content) can ever linger in the DOM, even across a full game restart.
+    host.querySelectorAll('.flip-card').forEach((el) => el.remove());
+    const card = createFlipCardEl();
+
+    // Start fully hidden (below, transparent) with no transition, then
+    // release it on the next paint so the browser animates TO the resting
+    // state defined in CSS (translateY(0) / opacity 1). This guarantees
+    // zero flashed frames and a clean ease-in-out slide.
+    card.style.transition = 'none';
+    card.style.transform = `translateY(${CARD_SLIDE_DIST}px)`;
+    card.style.opacity = '0';
+    host.appendChild(card);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        card.style.transition = '';
+        card.style.transform = '';
+        card.style.opacity = '';
+      });
+    });
+
+    return card;
+  }
+
+  // Slides the current card down while fading out, removes it, then calls back.
+  function dismissFlipCard(card, onDone) {
+    if (!card) { onDone(); return; }
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      card.removeEventListener('transitionend', onTransitionEnd);
+      card.remove();
+      onDone();
+    };
+    const onTransitionEnd = (e) => {
+      if (e.target !== card || e.propertyName !== 'transform') return;
+      finish();
+    };
+    card.addEventListener('transitionend', onTransitionEnd);
+    card.style.pointerEvents = 'none';
+    card.style.transform = `translateY(${CARD_SLIDE_DIST}px)`;
+    card.style.opacity = '0';
+    // Fallback in case transitionend doesn't fire (tab throttling, etc.)
+    setTimeout(finish, CARD_SLIDE_MS + 120);
+  }
+
+  function renderRevealCard() {
+    $('nextPlayerBtn').hidden = true;
+
+    const playerIdx = state.order[state.revealIndex];
+    const name = state.names[playerIdx] || t('namePlaceholder', playerIdx + 1);
+    $('revealName').textContent = name;
+    $('revealProgress').textContent = `${state.revealIndex + 1} / ${state.playerCount}`;
+
+    // Prepared now, but only ever written into the DOM after the flip finishes.
+    pendingRoleHTML = buildRoleHTML(playerIdx);
+
+    mountFlipCard();
+  }
+
+  function flipCurrentCard(card) {
+    if (card.classList.contains('flipped')) return;
+    card.classList.add('flipped');
+
+    const inner = card.querySelector('.flip-inner');
+    let finished = false;
+    const reveal = () => {
+      if (finished) return;
+      finished = true;
+      inner.removeEventListener('transitionend', onTransitionEnd);
+      const back = card.querySelector('.flip-back');
+      if (back) back.innerHTML = pendingRoleHTML;
+      $('nextPlayerBtn').hidden = false;
+    };
+    const onTransitionEnd = (e) => {
+      if (e.target !== inner || e.propertyName !== 'transform') return;
+      reveal();
+    };
+    inner.addEventListener('transitionend', onTransitionEnd);
+    // Fallback in case transitionend doesn't fire.
+    setTimeout(reveal, CARD_FLIP_MS + 120);
+  }
+
+  function wireReveal() {
+    $('flipCardHost').addEventListener('click', (e) => {
+      const card = e.target.closest('.flip-card');
+      if (!card) return;
+      flipCurrentCard(card);
+    });
+
+    $('nextPlayerBtn').addEventListener('click', () => {
+      $('nextPlayerBtn').hidden = true;
+      const host = $('flipCardHost');
+      const oldCard = host.querySelector('.flip-card');
+      dismissFlipCard(oldCard, () => {
+        state.revealIndex++;
+        if (state.revealIndex >= state.playerCount) {
+          startCountdown();
+        } else {
+          renderRevealCard();
+        }
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 9. COUNTDOWN TIMER
+   * ------------------------------------------------------------------ */
+  const RING_CIRC = 2 * Math.PI * 100; // r=100
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  function startCountdown() {
+    state.timerTotal = state.timeSeconds;
+    state.timerRemaining = state.timeSeconds;
+    state.paused = false;
+    $('pauseBtn').textContent = t('pause');
+    $('ringFg').style.strokeDasharray = `${RING_CIRC}`;
+    updateRing();
+    showScreen('screen-timer');
+    clearInterval(state.timerId);
+    state.timerId = setInterval(tickTimer, 1000);
+  }
+
+  function updateRing() {
+    const frac = state.timerRemaining / state.timerTotal;
+    const offset = RING_CIRC * (1 - frac);
+    $('ringFg').style.strokeDashoffset = offset;
+    $('timerDisplay').textContent = formatTime(state.timerRemaining);
+    const wrap = document.querySelector('.timer-ring-wrap');
+    wrap.classList.toggle('urgent', state.timerRemaining <= 10 && state.timerRemaining > 0);
+  }
+
+  function tickTimer() {
+    if (state.paused) return;
+    state.timerRemaining--;
+    if (state.timerRemaining <= 0) {
+      state.timerRemaining = 0;
+      updateRing();
+      clearInterval(state.timerId);
+      playAlarmSound();
+      showTimesUp();
+      return;
+    }
+    updateRing();
+  }
+
+  function wireTimer() {
+    $('pauseBtn').addEventListener('click', () => {
+      state.paused = !state.paused;
+      $('pauseBtn').textContent = state.paused ? t('resume') : t('pause');
+    });
+    $('endBtn').addEventListener('click', () => {
+      clearInterval(state.timerId);
+      showTimesUp();
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 10. SOUND (WebAudio beep — no external assets required)
+   * ------------------------------------------------------------------ */
+  function playAlarmSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+      [0, 0.35, 0.7].forEach((delay, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = i % 2 === 0 ? 880 : 660;
+        gain.gain.setValueAtTime(0.0001, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + delay + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + 0.28);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.3);
+      });
+    } catch (e) { /* audio not available — fail silently */ }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 11. TIME'S UP / RESULTS
+   * ------------------------------------------------------------------ */
+  function showTimesUp() {
+    $('spyRevealList').hidden = true;
+    $('spyRevealList').innerHTML = '';
+    $('revealSpiesBtn').hidden = false;
+    showScreen('screen-timesup');
+  }
+
+  function wireTimesUp() {
+    $('revealSpiesBtn').addEventListener('click', () => {
+      const list = $('spyRevealList');
+      list.innerHTML = '';
+      state.spyIndices.forEach((idx, i) => {
+        const item = document.createElement('div');
+        item.className = 'spy-reveal-item';
+        item.style.animationDelay = `${i * 0.08}s`;
+        item.innerHTML = `<span class="name">${state.names[idx]}</span><span class="badge">${t('spyBadge')}</span>`;
+        list.appendChild(item);
+      });
+      list.hidden = false;
+      $('revealSpiesBtn').hidden = true;
+    });
+
+    $('playAgainBtn').addEventListener('click', () => {
+      startGame();
+    });
+
+    $('newGameBtn').addEventListener('click', () => {
+      showScreen('screen-home');
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * 12. INIT
+   * ------------------------------------------------------------------ */
+  function init() {
+    renderCategoryGrid();
+    renderNamesGrid();
+    updateSpiesHint();
+    wireSetup();
+    wireReveal();
+    wireTimer();
+    wireTimesUp();
+    applyTranslations();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
+</script>
+</body>
+</html>
