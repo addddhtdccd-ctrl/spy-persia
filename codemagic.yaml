@@ -1,0 +1,88 @@
+workflows:
+  spyfall-android-release:
+    name: Spyfall Android Release
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      groups:
+        - spyfall_signing   # create this group in Codemagic (see notes below)
+      node: 22
+      java: 17
+      vars:
+        PACKAGE_NAME: "com.spyfall.game"
+
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+
+      - name: Generate native Android project (Capacitor)
+        script: |
+          set -e
+          npx cap init "SPYFALL" "$PACKAGE_NAME" --web-dir=www
+          npx cap add android
+
+      - name: Drop in game-specific native files
+        script: |
+          set -e
+          A=android-assets
+          T=android/app/src/main
+
+          cp "$A/AndroidManifest.xml" "$T/AndroidManifest.xml"
+
+          mkdir -p "$T/java/com/spyfall/game"
+          cp "$A/java/com/spyfall/game/MainActivity.java" \
+             "$T/java/com/spyfall/game/MainActivity.java"
+
+          cp "$A/res/values/styles.xml"  "$T/res/values/styles.xml"
+          cp "$A/res/values/colors.xml"  "$T/res/values/colors.xml"
+          cp "$A/res/values/strings.xml" "$T/res/values/strings.xml"
+
+          mkdir -p "$T/res/drawable"
+          cp "$A/res/drawable/"*.xml "$T/res/drawable/"
+
+          mkdir -p "$T/res/mipmap-anydpi-v26"
+          cp "$A/res/mipmap-anydpi-v26/"*.xml "$T/res/mipmap-anydpi-v26/"
+
+          cp "$A/proguard-rules.pro" android/app/proguard-rules.pro
+
+          # Vector adaptive icon only needs API 26+ (matches minSdkVersion),
+          # so drop the placeholder PNG launcher sets Capacitor generated.
+          rm -rf "$T/res/mipmap-hdpi" "$T/res/mipmap-mdpi" "$T/res/mipmap-xhdpi" \
+                 "$T/res/mipmap-xxhdpi" "$T/res/mipmap-xxxhdpi"
+
+          # Apply minSdk/signing/release-build settings via an included file
+          # instead of hand-editing Capacitor's generated build.gradle.
+          cp "$A/app-build.gradle.snippet" android/app/capacitor-overrides.gradle
+          echo 'apply from: "capacitor-overrides.gradle"' >> android/app/build.gradle
+
+      - name: Decode release keystore
+        script: |
+          set -e
+          echo "$SPYFALL_KEYSTORE_BASE64" | base64 --decode > android/app/spyfall-release.keystore
+
+      - name: Sync web assets into the native project
+        script: npx cap sync android
+
+      - name: Build release APK
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Build release AAB
+        script: |
+          cd android
+          ./gradlew bundleRelease
+
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/mapping.txt
+
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
